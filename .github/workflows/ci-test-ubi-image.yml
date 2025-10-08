@@ -1,6 +1,7 @@
 name: ci-test-ubi-ginkgo
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
