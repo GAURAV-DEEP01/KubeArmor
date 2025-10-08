@@ -3,7 +3,6 @@ name: ci-test-ubi-ginkgo
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     paths:
       - "KubeArmor/**"
       - "tests/**"
@@ -12,7 +11,6 @@ on:
       - "pkg/KubeArmorOperator/**"
       - "deployments/helm/**"
   pull_request:
-    branches: [main]
     paths:
       - "KubeArmor/**"
       - "tests/**"

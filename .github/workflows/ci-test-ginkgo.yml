@@ -3,7 +3,6 @@ name: ci-test-ginkgo
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     paths:
       - "KubeArmor/**"
       - "tests/**"
@@ -13,7 +12,6 @@ on:
       - "deployments/helm/**"
       - "examples/multiubuntu/build/**"
   pull_request:
-    branches: [main]
     paths:
       - "KubeArmor/**"
       - "tests/**"
