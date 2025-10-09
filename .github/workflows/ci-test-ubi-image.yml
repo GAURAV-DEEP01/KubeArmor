@@ -33,7 +33,6 @@ jobs:
       fail-fast: false
       matrix:
         os: ["bpflsm"]
-        
         runtime: ["crio"]
   
 
