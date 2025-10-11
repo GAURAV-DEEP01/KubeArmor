@@ -3,24 +3,7 @@ name: ci-test-ginkgo
 on:
   workflow_dispatch:
   push:
-    paths:
-      - "KubeArmor/**"
-      - "tests/**"
-      - "protobuf/**"
-      - ".github/workflows/ci-test-ginkgo.yml"
-      - "pkg/KubeArmorOperator/**"
-      - "deployments/helm/**"
-      - "examples/multiubuntu/build/**"
   pull_request:
-    paths:
-      - "KubeArmor/**"
-      - "tests/**"
-      - "protobuf/**"
-      - ".github/workflows/ci-test-ginkgo.yml"
-      - "examples/multiubuntu/build/**"
-      - "pkg/KubeArmorOperator/**"
-      - "deployments/helm/**"
-
 # Declare default permissions as read only.
 permissions: read-all
 
@@ -33,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest-16-cores]
+        os: [ubuntu]
         runtime: ["containerd","crio"]
     steps:
       - uses: actions/checkout@v3
