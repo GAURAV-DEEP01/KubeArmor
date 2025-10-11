@@ -2,6 +2,7 @@ name: ci-test-ginkgo
 
 on:
   workflow_dispatch:
+  push:
 
 # Declare default permissions as read only.
 permissions: read-all
