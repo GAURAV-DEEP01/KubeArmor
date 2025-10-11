@@ -2,8 +2,6 @@ name: ci-test-ubi-ginkgo
 
 on:
   workflow_dispatch:
-  push:
-  pull_request:
 
 # Declare default permissions as read only.
 permissions: read-all

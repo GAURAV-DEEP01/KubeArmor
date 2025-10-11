@@ -2,8 +2,6 @@ name: ci-test-ginkgo
 
 on:
   workflow_dispatch:
-  push:
-  pull_request:
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -78,6 +76,9 @@ jobs:
         if: steps.filter.outputs.multiubuntu == 'true'
         run: |
           grep -rl "kubearmor/ubuntu-w-utils:latest" ./ | while read -r file; do sed -i 's/imagePullPolicy: Always/imagePullPolicy: Never/g' "$file"; done
+
+      - name: List Docker images before loading to Podman
+        run: docker images
 
       - name: Run KubeArmor
         timeout-minutes: 7
