@@ -66,6 +66,9 @@ jobs:
         if: steps.filter.outputs.controller == 'true'
         run: make -C pkg/KubeArmorController/ docker-build TAG=latest
 
+      - name: cat conf
+        run: cat /etc/crio/crio.conf
+
       - name: Run KubeArmor
         timeout-minutes: 7
         run: |
