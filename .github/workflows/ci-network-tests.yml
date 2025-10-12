@@ -1,6 +1,7 @@
 name: ci-network-test-ginkgo
 
 on:
+  workflow_dispatch:
   push:
 
 # Declare default permissions as read only.

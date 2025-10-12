@@ -69,7 +69,7 @@ jobs:
       - name: deploy pre existing pod 
         run: |
           kubectl apply -f ./tests/k8s_env/ksp/pre-run-pod.yaml
-          sleep 60
+          sleep 90
           kubectl get pods -A
 
       - name: make changes in multiubuntu-deployment
@@ -127,7 +127,7 @@ jobs:
           docker system prune -a -f 
           docker buildx prune -a -f
           helm upgrade --install kubearmor-operator ./deployments/helm/KubeArmorOperator -n kubearmor --create-namespace --set kubearmorOperator.image.tag=latest  --set kubearmorOperator.annotateExisting=true
-          kubectl wait --for=condition=ready --timeout=5m -n kubearmor pod -l kubearmor-app=kubearmor-operator
+          kubectl wait --for=condition=ready --timeout=7m -n kubearmor pod -l kubearmor-app=kubearmor-operator
           kubectl get pods -A
           if [[ ${{ steps.filter.outputs.controller }} == 'true' ]]; then
             kubectl apply -f pkg/KubeArmorOperator/config/samples/kubearmor-coverage.yaml --dry-run=client -o json | \
@@ -146,7 +146,7 @@ jobs:
             kubectl get pods -A
           done
 
-          sleep 10
+          sleep 20
           DAEMONSET_NAME=$(kubectl get daemonset -n kubearmor -o jsonpath='{.items[0].metadata.name}')
           echo "DaemonSet: $DAEMONSET_NAME"
 
@@ -177,7 +177,7 @@ jobs:
             }
           ]'
 
-          sleep 15
+          sleep 20
 
       - name: Get KubeArmor POD info
         run: |
