@@ -65,38 +65,38 @@ jobs:
         working-directory: ./tests/nonk8s_env
         timeout-minutes: 30
 
-      - name: Stop KubeArmor and Collect Coverage
+      - name: Stop KubeArmor and Extract Coverage
         if: always()
         run: |
           cd KubeArmor
 
           if [ -f kubearmor.pid ]; then
             PID=$(cat kubearmor.pid)
-            echo "Stopping KubeArmor PID=$PID with SIGTERM"
-
-            sudo kill -TERM $PID || true
-
-            for i in {1..20}; do
-              if ps -p $PID > /dev/null; then
-                sleep 1
-              else
-                break
-              fi
-            done
-
-            if ps -p $PID > /dev/null; then
-              echo "Process did not exit gracefully, forcing kill"
-              sudo kill -KILL $PID || true
-            fi
-
-            sudo rm -f kubearmor.pid
+            echo "Stopping KubeArmor PID=$PID with SIGINT"
+            sudo kill -INT $PID || true
           fi
 
-          sleep 2
+          # wait for graceful shutdown and coverage flush
+          for i in {1..30}; do
+            if [ ! -f kubearmor.pid ]; then break; fi
+            if ! ps -p $(cat kubearmor.pid) > /dev/null; then break; fi
+            sleep 1
+          done
 
-          sudo ls -l /coverage/ || true
-          sudo cp /coverage/systemd_coverage.out . || true
-          sudo chmod 644 systemd_coverage.out || true
+          # remove pid file
+          rm -f kubearmor.pid || true
+
+          # wait for coverage file to be written
+          for i in {1..24}; do
+            if [ -f /coverage/systemd_coverage.out ]; then
+              cp /coverage/systemd_coverage.out systemd_coverage.out
+              chmod 644 systemd_coverage.out
+              break
+            fi
+            sleep 5
+          done
+
+          ls -l .
 
       - name: Upload Coverage Artifact
         if: always()
