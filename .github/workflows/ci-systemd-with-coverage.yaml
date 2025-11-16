@@ -69,12 +69,31 @@ jobs:
         if: always()
         run: |
           cd KubeArmor
+
           if [ -f kubearmor.pid ]; then
-            sudo kill $(cat kubearmor.pid) || true
+            PID=$(cat kubearmor.pid)
+            echo "Stopping KubeArmor PID=$PID with SIGTERM"
+
+            sudo kill -TERM $PID || true
+
+            for i in {1..20}; do
+              if ps -p $PID > /dev/null; then
+                sleep 1
+              else
+                break
+              fi
+            done
+
+            if ps -p $PID > /dev/null; then
+              echo "Process did not exit gracefully, forcing kill"
+              sudo kill -KILL $PID || true
+            fi
+
             sudo rm -f kubearmor.pid
           fi
-          sleep 5
-          # Copy coverage file if exists
+
+          sleep 2
+
           sudo ls -l /coverage/ || true
           sudo cp /coverage/systemd_coverage.out . || true
           sudo chmod 644 systemd_coverage.out || true
