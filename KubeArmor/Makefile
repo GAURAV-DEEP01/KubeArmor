@@ -49,6 +49,8 @@ ifneq (, $(shell which llvm-strip))
 endif
 endif
 	cd $(CURDIR); CGO_ENABLED=0 go test -covermode=atomic -coverpkg=./... -c . -ldflags "$(GIT_INFO)" -o kubearmor
+	cd $(CURDIR)/BPF; make clean
+	cd $(CURDIR)/BPF; make
 
 .PHONY: protobuf
 protobuf:
@@ -143,18 +145,6 @@ endif
 	cd $(CURDIR)/BPF; make
 	cd $(CURDIR);ARCH=$(shell go env GOARCH) VERSION=$(shell git describe --tags --always --dirty) goreleaser release --clean --skip=publish,sign,validate --snapshot
 
-
-.PHONY: local-release-coverage
-local-release-coverage: build-coverage
-ifeq (, $(shell which goreleaser))
-	@{ \
-	set -e ;\
-	go install github.com/goreleaser/goreleaser@latest ;\
-	}
-endif
-	cd $(CURDIR)/BPF; make clean
-	cd $(CURDIR)/BPF; make
-	cd $(CURDIR); ARCH=$(shell go env GOARCH) VERSION=$(shell git describe --tags --always --dirty) goreleaser release --clean --skip=publish,sign,validate --snapshot
 
 .PHONY: scan
 scan: 

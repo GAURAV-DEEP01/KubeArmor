@@ -2,7 +2,7 @@ name: ci-test-with-coverage
 
 on:
   push:
-# Declare default permissions as read only.
+
 permissions: read-all
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
       - name: Build Coverage Test Binary
-        run: make local-release-coverage
+        run: make build-coverage
         working-directory: KubeArmor
 
       - name: Create coverage output directory
@@ -74,34 +74,20 @@ jobs:
         if: always()
         run: |
           cd KubeArmor
-
-          echo "Process running"
+          echo "KubeArmor Process:"
           ps aux | grep kubearmor
 
-          if [ -f kubearmor.pid ]; then
-            PID=$(cat kubearmor.pid)
-            echo "Stopping KubeArmor PID=$PID with SIGINT"
-            sudo kill -INT $PID || true
-          fi
-
-          echo "before pkill Process running"
-          ps aux | grep kubearmor
           sudo pkill kubearmor
 
-          echo "After pkill Process running"
-          ps aux | grep kubearmor
-          # wait for graceful shutdown and coverage flush
           for i in {1..30}; do
             if [ ! -f kubearmor.pid ]; then break; fi
             if ! ps -p $(cat kubearmor.pid) > /dev/null; then break; fi
             sleep 1
           done
 
-          # remove pid file
           rm -f kubearmor.pid || true
 
-          # wait for coverage file to be written
-          for i in {1..4}; do
+          for i in {1..5}; do
             if [ -f /coverage/systemd_coverage.out ]; then
               cp /coverage/systemd_coverage.out systemd_coverage.out
               chmod 644 systemd_coverage.out
@@ -109,23 +95,33 @@ jobs:
             fi
             sleep 5
           done
-          
-          echo "Process running"
-          ps aux | grep kubearmor
 
           ls -l .
 
+      - name: Measure code coverage
+        if: ${{ always() }}
+        run: |
+          ls -l
+          if [ -f systemd_coverage.out ]; then
+            go tool cover -func systemd_coverage.out
+          else
+            echo "Coverage file not found, skipping coverage report."
+          fi
 
-      - name: Upload KubeArmor Logs
+      - name: Upload Runtime Logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kubearmor_logs
-          path: KubeArmor/kubearmor.log
+          name: runtime_logs
+          path: |
+            KubeArmor/kubearmor.log
+          if-no-files-found: ignore
 
-      - name: Upload Coverage Artifact
+      - name: Upload Coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: systemd_coverage
-          path: KubeArmor/systemd_coverage.out
+          name: coverage_reports
+          path: |
+            KubeArmor/systemd_coverage.out
+          if-no-files-found: ignore
