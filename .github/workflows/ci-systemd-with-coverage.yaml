@@ -71,9 +71,9 @@ jobs:
         timeout-minutes: 30
 
       - name: Stop KubeArmor and Extract Coverage
+        working-directory: KubeArmor
         if: always()
         run: |
-          cd KubeArmor
           echo "KubeArmor Process:"
           ps aux | grep kubearmor
 
@@ -99,9 +99,10 @@ jobs:
           ls -l .
 
       - name: Measure code coverage
+        working-directory: KubeArmor
         if: ${{ always() }}
         run: |
-          ls -l
+          ls -l .
           if [ -f systemd_coverage.out ]; then
             go tool cover -func systemd_coverage.out
           else
