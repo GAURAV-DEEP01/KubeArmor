@@ -35,6 +35,21 @@ endif
 endif
 	cd $(CURDIR); CGO_ENABLED=0 go build -ldflags "$(GIT_INFO)" -o kubearmor main.go
 
+.PHONY: build-coverage
+build-coverage: protobuf
+	cd $(CURDIR); go mod tidy
+ifneq (, $(shell which bpftool))
+ifneq (, $(wildcard /sys/kernel/btf/vmlinux))
+	cd $(CURDIR); bpftool btf dump file /sys/kernel/btf/vmlinux format c > BPF/vmlinux.h || true
+endif
+ifneq (, $(shell which llvm-strip))
+	if grep -q bpf '/sys/kernel/security/lsm'; then \
+		cd $(CURDIR); go generate ./... || true; \
+	fi
+endif
+endif
+	cd $(CURDIR); CGO_ENABLED=0 go test -covermode=atomic -coverpkg=./... -c . -o kubearmor
+
 .PHONY: protobuf
 protobuf:
 	cd $(CURDIR); make -C ../protobuf
@@ -127,6 +142,19 @@ endif
 	cd $(CURDIR)/BPF; make clean
 	cd $(CURDIR)/BPF; make
 	cd $(CURDIR);ARCH=$(shell go env GOARCH) VERSION=$(shell git describe --tags --always --dirty) goreleaser release --clean --skip=publish,sign,validate --snapshot
+
+
+.PHONY: local-release-coverage
+local-release-coverage: build-coverage
+ifeq (, $(shell which goreleaser))
+	@{ \
+	set -e ;\
+	go install github.com/goreleaser/goreleaser@latest ;\
+	}
+endif
+	cd $(CURDIR)/BPF; make clean
+	cd $(CURDIR)/BPF; make
+	cd $(CURDIR); ARCH=$(shell go env GOARCH) VERSION=$(shell git describe --tags --always --dirty) goreleaser release --clean --skip=publish,sign,validate --snapshot
 
 .PHONY: scan
 scan: 
