@@ -48,14 +48,19 @@ jobs:
         run: |
           REPO_ROOT="$(pwd)"
           CONFIG_PATH="$REPO_ROOT/packaging/kubearmor.yaml"
+
           echo "Repository Root: $REPO_ROOT"
           echo "Using config: $CONFIG_PATH"
           test -f "$CONFIG_PATH" && echo "Config file found" || (echo "Config file NOT found!" && exit 1)
-          sudo env KUBEARMOR_CFG="$CONFIG_PATH" ./kubearmor -test.coverprofile=/coverage/systemd_coverage.out  &
+
+          sudo env KUBEARMOR_CFG="$CONFIG_PATH" \
+            ./kubearmor -test.coverprofile=/coverage/systemd_coverage.out \
+            > kubearmor.log 2>&1 &
+
           echo $! > kubearmor.pid
           echo "KubeArmor PID: $(cat kubearmor.pid)"
+
           sleep 15
-          sudo journalctl --no-pager -n 100 --no-hostname || true
         working-directory: KubeArmor
 
       - name: Test KubeArmor using Ginkgo
@@ -87,7 +92,7 @@ jobs:
           rm -f kubearmor.pid || true
 
           # wait for coverage file to be written
-          for i in {1..24}; do
+          for i in {1..4}; do
             if [ -f /coverage/systemd_coverage.out ]; then
               cp /coverage/systemd_coverage.out systemd_coverage.out
               chmod 644 systemd_coverage.out
@@ -97,6 +102,14 @@ jobs:
           done
 
           ls -l .
+
+
+      - name: Upload KubeArmor Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubearmor_logs
+          path: KubeArmor/kubearmor.log
 
       - name: Upload Coverage Artifact
         if: always()
