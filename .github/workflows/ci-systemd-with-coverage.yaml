@@ -48,7 +48,6 @@ jobs:
         run: |
           REPO_ROOT="$(pwd)"
           CONFIG_PATH="$REPO_ROOT/packaging/kubearmor.yaml"
-
           echo "Repository Root: $REPO_ROOT"
           echo "Using config: $CONFIG_PATH"
           test -f "$CONFIG_PATH" && echo "Config file found" || (echo "Config file NOT found!" && exit 1)
