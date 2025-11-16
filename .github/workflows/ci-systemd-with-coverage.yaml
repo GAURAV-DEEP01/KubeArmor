@@ -47,25 +47,17 @@ jobs:
       - name: Run KubeArmor Test Binary with Coverage (Background)
         run: |
           REPO_ROOT="$(pwd)"
-          CONFIG_PATH="$REPO_ROOT/KubeArmor/packaging/kubearmor.yaml"
+          CONFIG_PATH="$REPO_ROOT/packaging/kubearmor.yaml"
 
           echo "Repository Root: $REPO_ROOT"
           echo "Using config: $CONFIG_PATH"
           test -f "$CONFIG_PATH" && echo "Config file found" || (echo "Config file NOT found!" && exit 1)
-
-          cd KubeArmor
-
-          sudo -E \
-            KUBEARMOR_CFG="$CONFIG_PATH" \
-            ./kubearmor \
-            -test.coverprofile=/coverage/coverage_local_containerd.out \
-            -test.run=^$ \
-            -logtostderr \
-            &
+          sudo env KUBEARMOR_CFG="$CONFIG_PATH" ./kubearmor -test.coverprofile=/coverage/systemd_coverage.out  &
           echo $! > kubearmor.pid
           echo "KubeArmor PID: $(cat kubearmor.pid)"
           sleep 15
           sudo journalctl --no-pager -n 100 --no-hostname || true
+        working-directory: KubeArmor
 
       - name: Test KubeArmor using Ginkgo
         run: |
