@@ -2,19 +2,19 @@ name: ci-test-systemd
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "KubeArmor/**"
-      - "tests/**"
-      - "protobuf/**"
-      - ".github/workflows/ci-test-systemd.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "KubeArmor/**"
-      - "tests/**"
-      - "protobuf/**"
-      - ".github/workflows/ci-test-systemd.yml"
+  #   branches: [main]
+  #   paths:
+  #     - "KubeArmor/**"
+  #     - "tests/**"
+  #     - "protobuf/**"
+  #     - ".github/workflows/ci-test-systemd.yml"
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - "KubeArmor/**"
+  #     - "tests/**"
+  #     - "protobuf/**"
+  #     - ".github/workflows/ci-test-systemd.yml"
 
 
 permissions: read-all
