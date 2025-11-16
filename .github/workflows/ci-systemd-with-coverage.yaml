@@ -69,40 +69,57 @@ jobs:
           make
         working-directory: ./tests/nonk8s_env
         timeout-minutes: 30
-
       - name: Stop KubeArmor and Extract Coverage
         if: always()
         run: |
           cd KubeArmor
 
-          if [ -f kubearmor.pid ]; then
-            PID=$(cat kubearmor.pid)
-            echo "Stopping KubeArmor PID=$PID with SIGINT"
-            sudo kill -INT $PID || true
+          echo "=== [$(date)] FULL ps aux at start of shutdown step:"
+          ps aux
+
+          KUBEARMOR_PID=$(ps aux | grep 'kubearmor' | awk '{print $2}')
+          if [ -n "$KUBEARMOR_PID" ]; then
+            echo "=== [$(date)] Found KubeArmor PID = $KUBEARMOR_PID"
+            echo "=== [$(date)] Sending SIGINT to PID $KUBEARMOR_PID..."
+            sudo kill -INT "$KUBEARMOR_PID" || echo "=== [$(date)] kill returned non-zero (maybe already gone)"
+          else
+            echo "=== [$(date)] WARNING: KubeArmor process not found via grep – listing all kubearmor-related processes:"
+            ps aux | grep -i kubearmor || true
           fi
 
-          # wait for graceful shutdown and coverage flush
+          # ----- Wait for graceful shutdown (max 30 s) with per-second ps aux -----
+          echo "=== [$(date)] Waiting up to 30s for graceful shutdown..."
           for i in {1..30}; do
-            if [ ! -f kubearmor.pid ]; then break; fi
-            if ! ps -p $(cat kubearmor.pid) > /dev/null; then break; fi
+            if ! ps -p "$KUBEARMOR_PID" > /dev/null 2>&1; then
+              echo "=== [$(date)] KubeArmor process terminated (PID $KUBEARMOR_PID gone)"
+              break
+            fi
+            echo "=== [$(date)] Still running (sec $i/30) – ps aux snapshot:"
+            ps aux | grep -i kubearmor || true
             sleep 1
           done
 
-          # remove pid file
-          rm -f kubearmor.pid || true
+          echo "=== [$(date)] FULL ps aux after shutdown attempt:"
+          ps aux
 
-          # wait for coverage file to be written
+          echo "=== [$(date)] Waiting for coverage file to appear..."
           for i in {1..4}; do
             if [ -f /coverage/systemd_coverage.out ]; then
+              echo "=== [$(date)] Coverage file found! Copying..."
               cp /coverage/systemd_coverage.out systemd_coverage.out
               chmod 644 systemd_coverage.out
+              echo "=== [$(date)] Coverage file copied. Contents preview:"
+              head -n 20 systemd_coverage.out || true
               break
+            else
+              echo "=== [$(date)] Coverage file not yet present (attempt $i/4) – checking /coverage:"
+              ls -l /coverage/ || true
             fi
             sleep 5
           done
 
+          echo "=== [$(date)] Final directory listing in $(pwd):"
           ls -l .
-
 
       - name: Upload KubeArmor Logs
         if: always()
