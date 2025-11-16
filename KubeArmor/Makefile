@@ -48,7 +48,7 @@ ifneq (, $(shell which llvm-strip))
 	fi
 endif
 endif
-	cd $(CURDIR); CGO_ENABLED=0 go test -covermode=atomic -coverpkg=./... -c . -o kubearmor
+	cd $(CURDIR); CGO_ENABLED=0 go test -covermode=atomic -coverpkg=./... -c . -ldflags "$(GIT_INFO)" -o kubearmor
 
 .PHONY: protobuf
 protobuf:

@@ -1,8 +1,7 @@
-name: ci-test-with-yaml
+name: ci-test-with-coverage
 
 on:
   push:
-
 # Declare default permissions as read only.
 permissions: read-all
 
@@ -35,21 +34,48 @@ jobs:
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-    
-      - name: Build Systemd Release
-        run: make local-release-coverage
+
+      - name: Build Coverage Test Binary
+        run: make build-coverage
         working-directory: KubeArmor
 
-      - name: Install KubeArmor
-        run: sudo apt install -y ./dist/kubearmor*amd64.deb
-        working-directory: KubeArmor
+      - name: Create coverage output directory
+        run: |
+          sudo mkdir -p /coverage
+          sudo chmod 777 /coverage
 
-      - name: Check journalctl
-        run: sudo journalctl -u kubearmor --no-pager
+      - name: Run KubeArmor Test Binary with Coverage (Background)
+        run: |
+          cd KubeArmor
+          sudo -E ./kubearmor -test.coverprofile=/coverage/systemd_coverage.out &
+          echo $! > kubearmor.pid
+          sleep 10  # Wait for startup
+          sudo journalctl -u kubearmor --no-pager || true
 
-      - name: Test kubearmor using ginkgo 
+      - name: Test KubeArmor using Ginkgo
         run: |
           go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
           make
         working-directory: ./tests/nonk8s_env
         timeout-minutes: 30
+
+      - name: Stop KubeArmor and Collect Coverage
+        if: always()
+        run: |
+          cd KubeArmor
+          if [ -f kubearmor.pid ]; then
+            sudo kill $(cat kubearmor.pid) || true
+            sudo rm -f kubearmor.pid
+          fi
+          sleep 5
+          # Copy coverage file if exists
+          sudo ls -l /coverage/ || true
+          sudo cp /coverage/systemd_coverage.out . || true
+          sudo chmod 644 systemd_coverage.out || true
+
+      - name: Upload Coverage Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: systemd_coverage
+          path: KubeArmor/systemd_coverage.out

@@ -1,9 +1,27 @@
 name: ci-test-ginkgo
 
 on:
-  workflow_dispatch:
   push:
+    branches: [main]
+    paths:
+      - "KubeArmor/**"
+      - "tests/**"
+      - "protobuf/**"
+      - ".github/workflows/ci-test-ginkgo.yml"
+      - "pkg/KubeArmorOperator/**"
+      - "deployments/helm/**"
+      - "examples/multiubuntu/build/**"
   pull_request:
+    branches: [main]
+    paths:
+      - "KubeArmor/**"
+      - "tests/**"
+      - "protobuf/**"
+      - ".github/workflows/ci-test-ginkgo.yml"
+      - "examples/multiubuntu/build/**"
+      - "pkg/KubeArmorOperator/**"
+      - "deployments/helm/**"
+
 # Declare default permissions as read only.
 permissions: read-all
 
@@ -16,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04]
+        os: [oracle-vm-16cpu-64gb-x86-64]
         runtime: ["containerd","crio"]
     steps:
       - uses: actions/checkout@v3
@@ -236,9 +254,12 @@ jobs:
           else
             echo "Coverage file not found, skipping coverage report."
           fi
+        
         working-directory: KubeArmor
         env:
           GOPATH: /home/runner/go
+          GOCACHE: ${{ runner.temp }}/go-cache
+          GOMODCACHE: ${{ runner.temp }}/go-mod-cache
 
       - name: Upload coverage file
         if: ${{ always() }}
