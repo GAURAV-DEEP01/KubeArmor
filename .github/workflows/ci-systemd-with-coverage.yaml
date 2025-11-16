@@ -36,7 +36,7 @@ jobs:
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
       - name: Build Coverage Test Binary
-        run: make build-coverage
+        run: make local-release-coverage
         working-directory: KubeArmor
 
       - name: Create coverage output directory
