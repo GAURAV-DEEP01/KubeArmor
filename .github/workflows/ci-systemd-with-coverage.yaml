@@ -1,7 +1,21 @@
-name: ci-test-with-coverage
+name: ci-test-systemd
 
 on:
   push:
+    branches: [main]
+    paths:
+      - "KubeArmor/**"
+      - "tests/**"
+      - "protobuf/**"
+      - ".github/workflows/ci-test-systemd.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "KubeArmor/**"
+      - "tests/**"
+      - "protobuf/**"
+      - ".github/workflows/ci-test-systemd.yml"
+
 
 permissions: read-all
 
@@ -24,12 +38,6 @@ jobs:
       - name: Compile libbpf
         run: ./.github/workflows/install-libbpf.sh
 
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v2
-        with:
-          install-only: true
-          version: v1.25.0
-
       - name: Install protoc
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -44,7 +52,7 @@ jobs:
           sudo mkdir -p /coverage
           sudo chmod 777 /coverage
 
-      - name: Run KubeArmor Test Binary with Coverage (Background)
+      - name: Run KubeArmor Test Binary with Coverage
         run: |
           REPO_ROOT="$(pwd)"
           CONFIG_PATH="$REPO_ROOT/packaging/kubearmor.yaml"
