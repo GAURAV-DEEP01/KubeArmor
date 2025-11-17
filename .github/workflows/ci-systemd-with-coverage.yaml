@@ -92,7 +92,7 @@ jobs:
 
       - name: Measure code coverage
         working-directory: KubeArmor
-        if: ${{ always() }}
+        if: always()
         run: |
           ls -l .
           for i in {1..5}; do
@@ -104,14 +104,13 @@ jobs:
             sleep 5
           done
 
-      - name: Upload Runtime Logs
-        if: always()
+      - name: Archive log artifacts
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: runtime_logs
           path: |
-            /tmp/kubearmor.log
-            /tmp/kubearmor.out
+            /tmp/kubearmor.*
           if-no-files-found: ignore
 
       - name: Upload Coverage
