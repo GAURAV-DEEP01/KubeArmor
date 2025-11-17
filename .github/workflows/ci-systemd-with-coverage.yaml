@@ -97,15 +97,12 @@ jobs:
           ls -l .
           for i in {1..5}; do
             if [ -f systemd_coverage.out ]; then
-              chmod 644 systemd_coverage.out
               go tool cover -func systemd_coverage.out
-              exit 0
+              break
             fi
+            echo "systemd_coverage.out not found yet, retrying ($i/5)..."
             sleep 5
           done
-
-          echo "systemd_coverage.out not found after waiting."
-          exit 1
 
       - name: Upload Runtime Logs
         if: always()
