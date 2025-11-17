@@ -47,11 +47,6 @@ jobs:
         working-directory: KubeArmor
         run: make build-coverage
 
-      - name: Create coverage output directory
-        run: |
-          sudo mkdir -p /coverage
-          sudo chmod 777 /coverage
-
       - name: Run KubeArmor
         working-directory: KubeArmor
         run: |
@@ -62,10 +57,10 @@ jobs:
           test -f "$CONFIG_PATH" && echo "Config file found" || (echo "Config file NOT found!" && exit 1)
 
           sudo env KUBEARMOR_CFG="$CONFIG_PATH" \
-            ./kubearmor \
-            -logPath=/tmp/kubearmor.log \
-            -test.coverprofile=/coverage/systemd_coverage.out \
-             2>&1 > /dev/null &
+              ./kubearmor \
+              -logPath=/tmp/kubearmor.log \
+              -test.coverprofile=systemd_coverage.out \
+              > /tmp/kubearmor.out 2>&1 &
 
           echo $! > kubearmor.pid
           echo "KubeArmor PID: $(cat kubearmor.pid)"
@@ -79,7 +74,7 @@ jobs:
           make
         timeout-minutes: 30
 
-      - name: Stop KubeArmor and Extract Coverage
+      - name: Stop KubeArmor
         working-directory: KubeArmor
         if: always()
         run: |
@@ -93,30 +88,24 @@ jobs:
             if ! ps -p $(cat kubearmor.pid) > /dev/null; then break; fi
             sleep 1
           done
-
           rm -f kubearmor.pid || true
-
-          for i in {1..5}; do
-            if [ -f /coverage/systemd_coverage.out ]; then
-              cp /coverage/systemd_coverage.out systemd_coverage.out
-              chmod 644 systemd_coverage.out
-              break
-            fi
-            sleep 5
-          done
-
-          ls -l .
 
       - name: Measure code coverage
         working-directory: KubeArmor
         if: ${{ always() }}
         run: |
           ls -l .
-          if [ -f systemd_coverage.out ]; then
-            go tool cover -func systemd_coverage.out
-          else
-            echo "Coverage file not found, skipping coverage report."
-          fi
+          for i in {1..5}; do
+            if [ -f systemd_coverage.out ]; then
+              chmod 644 systemd_coverage.out
+              go tool cover -func systemd_coverage.out
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "systemd_coverage.out not found after waiting."
+          exit 1
 
       - name: Upload Runtime Logs
         if: always()
@@ -125,6 +114,7 @@ jobs:
           name: runtime_logs
           path: |
             /tmp/kubearmor.log
+            /tmp/kubearmor.out
           if-no-files-found: ignore
 
       - name: Upload Coverage
