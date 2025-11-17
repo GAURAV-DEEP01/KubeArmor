@@ -44,38 +44,39 @@ jobs:
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
       - name: Build Coverage Test Binary
-        run: make build-coverage
         working-directory: KubeArmor
+        run: make build-coverage
 
       - name: Create coverage output directory
         run: |
           sudo mkdir -p /coverage
           sudo chmod 777 /coverage
 
-      - name: Run KubeArmor Test Binary with Coverage
+      - name: Run KubeArmor
+        working-directory: KubeArmor
         run: |
           REPO_ROOT="$(pwd)"
           CONFIG_PATH="$REPO_ROOT/packaging/kubearmor.yaml"
 
-          echo "Repository Root: $REPO_ROOT"
           echo "Using config: $CONFIG_PATH"
           test -f "$CONFIG_PATH" && echo "Config file found" || (echo "Config file NOT found!" && exit 1)
 
           sudo env KUBEARMOR_CFG="$CONFIG_PATH" \
-            ./kubearmor -test.coverprofile=/coverage/systemd_coverage.out \
-            > kubearmor.log 2>&1 &
+            ./kubearmor \
+            -logPath=/tmp/kubearmor.log \
+            -test.coverprofile=/coverage/systemd_coverage.out \
+             2>&1 > /dev/null &
 
           echo $! > kubearmor.pid
           echo "KubeArmor PID: $(cat kubearmor.pid)"
 
           sleep 15
-        working-directory: KubeArmor
 
       - name: Test KubeArmor using Ginkgo
+        working-directory: ./tests/nonk8s_env
         run: |
           go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
           make
-        working-directory: ./tests/nonk8s_env
         timeout-minutes: 30
 
       - name: Stop KubeArmor and Extract Coverage
@@ -123,7 +124,7 @@ jobs:
         with:
           name: runtime_logs
           path: |
-            KubeArmor/kubearmor.log
+            /tmp/kubearmor.log
           if-no-files-found: ignore
 
       - name: Upload Coverage
