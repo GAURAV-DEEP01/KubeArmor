@@ -95,14 +95,11 @@ jobs:
         if: always()
         run: |
           ls -l .
-          for i in {1..5}; do
-            if [ -f systemd_coverage.out ]; then
-              go tool cover -func systemd_coverage.out
-              break
-            fi
-            echo "systemd_coverage.out not found yet, retrying ($i/5)..."
-            sleep 5
-          done
+          if [ -f systemd_coverage.out ]; then
+            go tool cover -func systemd_coverage.out
+            break
+          fi
+          echo "systemd_coverage.out not found yet, retrying ($i/5)..."
 
       - name: Archive log artifacts
         if: failure()
