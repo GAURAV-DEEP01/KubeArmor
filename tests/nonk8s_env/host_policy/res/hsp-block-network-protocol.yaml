@@ -1,0 +1,23 @@
+apiVersion: security.kubearmor.com/v1
+kind: KubeArmorHostPolicy
+metadata:
+  name: hsp-block-network-protocol
+spec:
+  nodeSelector:
+    matchLabels:
+      kubearmor.io/hostname: "*"
+
+  severity: 5
+  tags:
+    - global-tag
+  message: global-msg
+  action: Block
+
+  network:
+    severity: 8
+    tags:
+      - network-tag
+    message: TCP is blocked
+
+    matchProtocols:
+      - protocol: tcp
