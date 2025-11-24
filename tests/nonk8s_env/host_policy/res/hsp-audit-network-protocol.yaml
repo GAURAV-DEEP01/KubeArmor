@@ -1,7 +1,7 @@
 apiVersion: security.kubearmor.com/v1
 kind: KubeArmorHostPolicy
 metadata:
-  name: hsp-block-network-protocol
+  name: hsp-audit-network-protocol
 spec:
   nodeSelector:
     matchLabels:
@@ -11,13 +11,13 @@ spec:
   tags:
     - global-tag
   message: global-msg
-  action: Block
+  action: Audit
 
   network:
     severity: 7
     tags:
       - network-tag
-    message: UDP is blocked
+    message: UDP is being monitored
 
     matchProtocols:
       - protocol: udp

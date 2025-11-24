@@ -140,8 +140,8 @@ var _ = Describe("Host Policy Tests", func() {
 			Expect(err).To(BeNil())
 		})
 
-		It("should block udp network protocol", func() {
-			policyPath := "res/hsp-block-network-protocol.yaml"
+		It("should audit udp network protocol", func() {
+			policyPath := "res/hsp-audit-network-protocol.yaml"
 
 			err := KarmorHostLogStart("policy", "Network")
 			Expect(err).To(BeNil())
@@ -149,11 +149,11 @@ var _ = Describe("Host Policy Tests", func() {
 			err = SendPolicy("ADDED", policyPath)
 			Expect(err).To(BeNil())
 
-			_, _ = RunHostCommand([]string{"nc", "-u", "-l", "9999"})
+			_, _ = RunHostCommand([]string{"echo", "test", "|", "nc", "-u", "127.0.0.1", "9999"})
 
 			target := &protobuf.Alert{
-				PolicyName: "hsp-block-network-protocol",
-				Result:     "Permission denied",
+				PolicyName: "hsp-audit-network-protocol",
+				Result:     "Passed",
 			}
 
 			res, err := KarmorGetTargetAlert(5*time.Second, target)
