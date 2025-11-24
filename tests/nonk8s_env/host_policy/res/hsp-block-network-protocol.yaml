@@ -14,10 +14,10 @@ spec:
   action: Block
 
   network:
-    severity: 8
+    severity: 7
     tags:
       - network-tag
-    message: TCP is blocked
+    message: UDP is blocked
 
     matchProtocols:
-      - protocol: tcp
+      - protocol: udp

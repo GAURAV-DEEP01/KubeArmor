@@ -140,29 +140,29 @@ var _ = Describe("Host Policy Tests", func() {
 			Expect(err).To(BeNil())
 		})
 
-		// It("should block tcp network protocol", func() {
-		// 	policyPath := "res/hsp-block-network-protocol.yaml"
-		//
-		// 	err := KarmorHostLogStart("policy", "Network")
-		// 	Expect(err).To(BeNil())
-		//
-		// 	err = SendPolicy("ADDED", policyPath)
-		// 	Expect(err).To(BeNil())
-		//
-		// 	_, _ = RunHostCommand([]string{"curl", "google.com"})
-		//
-		// 	target := &protobuf.Alert{
-		// 		PolicyName: "hsp-block-network-protocol",
-		// 		Result:     "Permission denied",
-		// 	}
-		//
-		// 	res, err := KarmorGetTargetAlert(5*time.Second, target)
-		// 	Expect(err).To(BeNil())
-		// 	Expect(res.Found).To(BeTrue())
-		//
-		// 	err = SendPolicy("DELETED", policyPath)
-		// 	Expect(err).To(BeNil())
-		// })
+		It("should block udp network protocol", func() {
+			policyPath := "res/hsp-block-network-protocol.yaml"
+
+			err := KarmorHostLogStart("policy", "Network")
+			Expect(err).To(BeNil())
+
+			err = SendPolicy("ADDED", policyPath)
+			Expect(err).To(BeNil())
+
+			_, _ = RunHostCommand([]string{"nc", "-u", "-l", "9999"})
+
+			target := &protobuf.Alert{
+				PolicyName: "hsp-block-network-protocol",
+				Result:     "Permission denied",
+			}
+
+			res, err := KarmorGetTargetAlert(5*time.Second, target)
+			Expect(err).To(BeNil())
+			Expect(res.Found).To(BeTrue())
+
+			err = SendPolicy("DELETED", policyPath)
+			Expect(err).To(BeNil())
+		})
 
 		It("should block file read (/etc/passwd)", func() {
 			policyPath := "res/hsp-block-file-etc-passwd.yaml"
