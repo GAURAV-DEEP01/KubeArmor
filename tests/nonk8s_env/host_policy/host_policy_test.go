@@ -64,7 +64,7 @@ var _ = Describe("Host Policy Tests", func() {
 	Describe("Host Policy Enforcement", func() {
 		AfterEach(func() {
 			KarmorLogStop()
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 2)
 		})
 
 		It("should block access to files under /tmp/*", func() {
